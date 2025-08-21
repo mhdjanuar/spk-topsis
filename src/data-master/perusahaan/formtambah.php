@@ -3,6 +3,9 @@
   session_start();
   include ("../../../koneksi.php");
 
+   // base path project
+  $base = "/spk-topsis-web/";
+
   //pemberian kode id secara otomatis
   $carikode = $koneksi->query("SELECT id_perusahaan FROM tab_perusahaan") or die(mysqli_error());
   $datakode = $carikode->fetch_array();
@@ -59,50 +62,40 @@
             </div>
           </div> -->
 
-          <nav class="mt-2">
+           <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
               <li class="nav-item">
-                <a href="../../../index.php" class="nav-link">
+                <a href="<?php echo $base; ?>index.php" class="nav-link">
                   <i class="nav-icon fas fa-tachometer-alt"></i>
-                  <p>
-                    Beranda
-                  </p>
+                  <p>Beranda</p>
                 </a>
               </li>
               <div class="dropdown-divider"></div>
               <li class="nav-header">DATA MASTER</li>
               <li class="nav-item">
-                <a href="src/data-master/kriteria/kriteria.php" class="nav-link">
+                <a href="<?php echo $base; ?>src/data-master/kriteria/kriteria.php" class="nav-link">
                   <i class="nav-icon far fa-plus-square"></i>
-                  <p>
-                    Kriteria Supplier
-                  </p>
+                  <p>Kriteria Supplier</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="src/data-master/perusahaan/perusahaan.php" class="nav-link active">
+                <a href="<?php echo $base; ?>src/data-master/perusahaan/perusahaan.php" class="nav-link active">
                   <i class="nav-icon fas fa-store"></i>
-                  <p>
-                    Perusahaan
-                  </p>
+                  <p>Perusahaan</p>
                 </a>
               </li>
               <div class="dropdown-divider"></div>
               <li class="nav-header">MENU</li>
               <li class="nav-item">
-                <a href="src/menu/nilai-kriteria/nilmat.php" class="nav-link">
+                <a href="<?php echo $base; ?>src/menu/nilai-kriteria/nilmat.php" class="nav-link">
                   <i class="nav-icon fas fa-percentage"></i>
-                  <p>
-                    Input Penilaian
-                  </p>
+                  <p>Input Penilaian</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="src/menu/hasil-penilaian/hasil.php" class="nav-link">
+                <a href="<?php echo $base; ?>src/menu/hasil-penilaian/hasil.php" class="nav-link">
                   <i class="nav-icon fas fa-receipt"></i>
-                  <p>
-                    Hasil Penilaian
-                  </p>
+                  <p>Hasil Penilaian</p>
                 </a>
               </li>
             </ul>
@@ -143,7 +136,7 @@
                     <input class="form-control" type="text" name="nama_perusahaan" placeholder="Nama Perusahaan...">
                   </div>
                   <div class="form-group float-right">
-                    <a href="src/data-master/perusahaan/perusahaan.php" class="btn btn-danger">
+                    <a href="<?php echo $base; ?>src/data-master/perusahaan/perusahaan.php" class="btn btn-danger">
                       Batal
                     </a>
                     <input class="btn btn-success" type="submit" name="simpan" value="Tambah">
@@ -155,11 +148,6 @@
           </div>
         </section>
       </div>
-
-      <footer class="main-footer text-center">
-        <strong>Copyright &copy; 2024.</strong>
-        All rights reserved.
-      </footer>
 
       <aside class="control-sidebar control-sidebar-dark">
       </aside>

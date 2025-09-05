@@ -1,104 +1,122 @@
 <?php
-    include('../../../koneksi.php');
+include('../../../koneksi.php');
+require_once('../../../public/plugins/tcpdf/tcpdf.php');
 
-    require_once('../../../public/plugins/tcpdf/tcpdf.php');
+// =================== FUNGSI FORMAT TANGGAL ===================
+function formatTanggalIndonesia($tanggal = null)
+{
+    $date = $tanggal ? new DateTime($tanggal) : new DateTime();
 
-    function formatTanggalIndonesia($tanggal = null)
-    {
-        // Kalau $tanggal null → pakai tanggal hari ini
-        $date = $tanggal ? new DateTime($tanggal) : new DateTime();
+    $hari = [
+        1 => 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+    ];
 
-        $bulan = [
-            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
+    $bulan = [
+        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
 
-        return $date->format('d') . ' ' .
-            $bulan[(int)$date->format('m')] . ' ' .
-            $date->format('Y');
-    }
+    return $hari[(int)$date->format('N')] . ', ' .
+        $date->format('d') . ' ' .
+        $bulan[(int)$date->format('m')] . ' ' .
+        $date->format('Y');
+}
 
-    class MyPDF extends TCPDF {
-      public function Footer() {
-          $this->SetY(-40);
-          $this->SetFont('helvetica', 'I', 8);
-
-          setlocale(LC_TIME, 'id_ID.UTF-8');
-          $date = new DateTime();
-          $formattedDate = formatTanggalIndonesia($date->format('Y-m-d'));
-
-          $footerHtml = '
-              <div>
-                  <p align="right">Cimanggis, ' . $formattedDate . '</p>
-                  <p align="right">Pimpinan</p>
-                  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-                  <p align="right">(Yogi Rizkyansyah S.E)</p>
-              </div>';
-          // Print text using writeHTMLCell
-          $this->writeHTMLCell(0, 0, '', '', $footerHtml, 0, 1, 0, true, 'C', true);
-      }
-  }
-
-    // Step 2: Create an instance of the TCPDF class
-    $pdf = new MyPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-    
-    // Step 3: Set document information
-    $pdf->SetTitle('Data Tabel Penilaian');
-
-    $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-    $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-    
-    // Step 4: Add a page to the PDF
-    $pdf->AddPage();
-    
-    $sql = $koneksi->query("SELECT tab_perusahaan.nama_perusahaan, tab_kriteria.nama_kriteria, tab_topsis.nilai
-      FROM tab_topsis
-      JOIN tab_perusahaan ON tab_topsis.id_perusahaan = tab_perusahaan.id_perusahaan
-      JOIN tab_kriteria ON tab_topsis.id_kriteria = tab_kriteria.id_kriteria
-      ORDER BY tab_perusahaan.id_perusahaan, tab_topsis.nilai DESC");
-    
-    $html = '
-    <div>
-      <h1 align="center">Laporan Hasil Penilaian</h1>
-      <table border="1" cellpadding="4">
-        <thead>
-          <tr>
-            <th><b>PERUSAHAAN</b></th>
-            <th><b>KRITERIA</b></th>
-            <th><b>NILAI</b></th>
-          </tr>
-        </thead>
-        <tbody>';
-
-    $no = 1;
-    $currentPerusahaan = "";
-
-    while ($row = $sql->fetch_array()) {
-      if ($row['nama_perusahaan'] != $currentPerusahaan) {
-        if ($currentPerusahaan != "") {
-          $html .= '<tr><td colspan="4">&nbsp;</td></tr>';
+// =================== CUSTOM CLASS TCPDF ===================
+class MyPDF extends TCPDF {
+    public function Header() {
+        // Logo
+        $image_file = __DIR__ . '/../../../public/style/img/pencatatan-logo.png';
+        if (file_exists($image_file)) {
+            $this->Image($image_file, 15, 5, 12, '', 'PNG');
         }
 
-        $currentPerusahaan = $row['nama_perusahaan'];
-        $html .= '<tr><td colspan="4"><strong>' . $currentPerusahaan . '</strong></td></tr>';
-      }
+        // Judul Perusahaan
+        $this->SetFont('helvetica', 'B', 14);
+        $this->Cell(0, 7, 'LatarOutdoor', 0, 1, 'C');
+        $this->SetFont('helvetica', '', 10);
+        $this->Cell(0, 6, 'Jl. Raya Cimanggis No. 123, Depok - Jawa Barat', 0, 1, 'C');
+        $this->Cell(0, 6, 'Telp: (021) 1234567 | Email: info@perusahaan.com', 0, 1, 'C');
 
-      $html .= '<tr>
-                  <td align="left"></td>
-                  <td align="left">' . $row['nama_kriteria'] . '</td>
-                  <td align="left">' . $row['nilai'] . '</td>
-                </tr>';
-
-      $no++;
+        // Garis pemisah
+        $this->Ln(2);
+        $this->Cell(0, 0, '', 'T');
+        $this->Ln(5);
     }
-    
-    $html .= '
-        </tbody>
-      </table>
-    </div>';
-    
-    $pdf->writeHTML($html, true, false, true, false, '');
 
-    // Step 6: Output the PDF to the browser
-    $pdf->Output('data-penilaian.pdf', 'I');
+    // Kosongkan footer default
+    public function Footer() {}
+}
+
+// =================== INSTANSIASI PDF ===================
+$pdf = new MyPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+// Info Dokumen
+$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetAuthor('LatarOutdoor');
+$pdf->SetTitle('Data Tabel Penilaian');
+
+// Margin
+$pdf->SetMargins(15, 50, 15);   // kiri, atas, kanan
+$pdf->SetAutoPageBreak(TRUE, 60); // sisakan 60 mm di bawah untuk tanda tangan
+
+$pdf->AddPage();
+
+// =================== QUERY DATA ===================
+$sql = $koneksi->query("
+    SELECT tab_perusahaan.nama_perusahaan, tab_kriteria.nama_kriteria, tab_topsis.nilai
+    FROM tab_topsis
+    JOIN tab_perusahaan ON tab_topsis.id_perusahaan = tab_perusahaan.id_perusahaan
+    JOIN tab_kriteria ON tab_topsis.id_kriteria = tab_kriteria.id_kriteria
+    ORDER BY tab_perusahaan.id_perusahaan, tab_topsis.nilai DESC
+");
+
+// =================== ISI KONTEN PDF ===================
+$html = '
+<h2 align="center" style="margin-bottom:15px;">Laporan Hasil Penilaian</h2>
+<table border="1" cellpadding="4">
+  <thead>
+    <tr style="background-color:#f2f2f2; font-weight:bold; text-align:center;">
+      <th width="200">PERUSAHAAN</th>
+      <th width="180">KRITERIA</th>
+      <th width="100">NILAI</th>
+    </tr>
+  </thead>
+  <tbody>';
+
+$currentPerusahaan = "";
+while ($row = $sql->fetch_array()) {
+    if ($row['nama_perusahaan'] != $currentPerusahaan) {
+        if ($currentPerusahaan != "") {
+            $html .= '<tr><td colspan="3">&nbsp;</td></tr>';
+        }
+        $currentPerusahaan = $row['nama_perusahaan'];
+        $html .= '<tr><td colspan="3"><strong>' . $currentPerusahaan . '</strong></td></tr>';
+    }
+
+    $html .= '<tr>
+                <td></td>
+                <td>' . $row['nama_kriteria'] . '</td>
+                <td align="center">' . $row['nilai'] . '</td>
+              </tr>';
+}
+$html .= '</tbody></table>';
+
+// Cetak tabel
+$pdf->writeHTML($html, true, false, true, false, '');
+
+// =================== TANDA TANGAN ===================
+$ttd = '
+    <br><br><br>
+    <p align="right">Cimanggis, ' . formatTanggalIndonesia() . '</p>
+    <p align="right">Pimpinan</p>
+    <br><br><br>
+    <p align="right">(Yogi Rizkyansyah S.E)</p>
+';
+
+// Cetak tanda tangan (akan selalu muat karena AutoPageBreak sudah sisakan ruang)
+$pdf->writeHTML($ttd, true, false, true, false, '');
+
+// =================== OUTPUT PDF ===================
+$pdf->Output('data-penilaian.pdf', 'I');
 ?>

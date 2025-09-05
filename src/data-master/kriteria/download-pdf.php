@@ -8,18 +8,50 @@
         // Kalau $tanggal null → pakai tanggal hari ini
         $date = $tanggal ? new DateTime($tanggal) : new DateTime();
 
-        $bulan = [
-            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        $hari = [
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
         ];
 
-        return $date->format('d') . ' ' .
+        $bulan = [
+            1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+
+        return $hari[(int)$date->format('N')] . ', ' .
+            $date->format('d') . ' ' .
             $bulan[(int)$date->format('m')] . ' ' .
             $date->format('Y');
     }
 
 
+
     class MyPDF extends TCPDF {
+        public function Header() {
+            // Logo
+            $image_file = __DIR__ . '/../../../public/style/img/pencatatan-logo.png';
+            if (file_exists($image_file)) {
+                $this->Image($image_file, 15, 5, 12, '', 'PNG');
+            }
+
+            // Judul Perusahaan
+            $this->SetFont('helvetica', 'B', 14);
+            $this->Cell(0, 7, 'LatarOutdoor', 0, 1, 'C');
+            $this->SetFont('helvetica', '', 10);
+            $this->Cell(0, 6, 'Jl. Raya Cimanggis No. 123, Depok - Jawa Barat', 0, 1, 'C');
+            $this->Cell(0, 6, 'Telp: (021) 1234567 | Email: info@perusahaan.com', 0, 1, 'C');
+
+            // Garis pemisah
+            $this->Ln(2);
+            $this->Cell(0, 0, '', 'T');
+            $this->Ln(5);
+        }
+
         public function Footer() {
             $this->SetY(-40);
             $this->SetFont('helvetica', 'I', 8);
